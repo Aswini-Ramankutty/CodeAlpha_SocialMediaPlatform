@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Search{% if query %}: {{ query }}{% endif %} — SocialApp{% endblock %}
+
+{% block content %}
+<div class="container-narrow py-4">
+    <!-- Search Bar -->
+    <div class="glass-card p-3 mb-3">
+        <form action="/search/" method="get" class="search-page-form">
+            <div class="search-input-wrap large">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="q" class="search-input" placeholder="Search SocialApp..."
+                       value="{{ query }}" autofocus>
+                {% if query %}
+                <a href="/search/" class="search-clear"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if query %}
+    <!-- Tab Navigation -->
+    <div class="glass-card mb-3">
+        <div class="search-tabs">
+            <a href="?q={{ query }}&tab=users" class="search-tab {% if tab == 'users' %}active{% endif %}">
+                <i class="fas fa-users me-1"></i>People
+            </a>
+            <a href="?q={{ query }}&tab=posts" class="search-tab {% if tab == 'posts' %}active{% endif %}">
+                <i class="fas fa-images me-1"></i>Posts
+            </a>
+            <a href="?q={{ query }}&tab=hashtags" class="search-tab {% if tab == 'hashtags' %}active{% endif %}">
+                <i class="fas fa-hashtag me-1"></i>Tags
+            </a>
+        </div>
+    </div>
+
+    <!-- Users Tab -->
+    {% if tab == 'users' or not tab %}
+    <div class="glass-card">
+        {% for user in users %}
+        <div class="search-user-item">
+            <a href="/profile/{{ user.username }}/" class="d-flex align-items-center gap-3 flex-grow-1 text-decoration-none">
+                <img src="{{ user.profile.get_avatar_url }}" alt="" class="search-avatar">
+                <div>
+                    <div class="fw-600">
+                        {{ user.get_full_name|default:user.username }}
+                        {% if user.profile.is_verified %}<i class="fas fa-check-circle text-primary" style="font-size:12px;"></i>{% endif %}
+                    </div>
+                    <div class="text-muted small">@{{ user.username }}</div>
+                    <div class="text-muted" style="font-size:11px;">{{ user.profile.followers_count }} followers</div>
+                </div>
+            </a>
+            <button class="btn btn-sm btn-gradient" onclick="toggleFollow(this, '{{ user.username }}')">
+                Follow
+            </button>
+        </div>
+        {% empty %}
+        <div class="text-center py-4">
+            <i class="fas fa-user-slash fa-2x text-muted mb-2"></i>
+            <p class="text-muted">No users found for "{{ query }}"</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Posts Tab -->
+    {% elif tab == 'posts' %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <a href="/post/{{ post.id }}/" class="grid-post-item">
+            {% if post.media %}<img src="{{ post.media.url }}" alt="" class="grid-post-thumb" loading="lazy">
+            {% else %}
+            <div class="grid-post-thumb text-post-thumb">
+                <p>{{ post.caption|truncatechars:60 }}</p>
+            </div>
+            {% endif %}
+            <div class="grid-post-overlay">
+                <span><i class="fas fa-heart"></i> {{ post.likes_count }}</span>
+                <span><i class="fas fa-comment"></i> {{ post.comments_count }}</span>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-12 text-center py-4">
+            <i class="fas fa-images fa-2x text-muted mb-2"></i>
+            <p class="text-muted">No posts found for "{{ query }}"</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Hashtags Tab -->
+    {% elif tab == 'hashtags' %}
+    <div class="glass-card">
+        {% for tag in hashtags %}
+        <a href="/hashtag/{{ tag.name }}/" class="trending-tag-item large">
+            <div class="tag-icon"><i class="fas fa-hashtag"></i></div>
+            <div>
+                <div class="fw-600">#{{ tag.name }}</div>
+                <div class="text-muted small">{{ tag.count }} post{{ tag.count|pluralize }}</div>
+            </div>
+            <i class="fas fa-chevron-right ms-auto text-muted"></i>
+        </a>
+        {% empty %}
+        <div class="text-center py-4">
+            <i class="fas fa-hashtag fa-2x text-muted mb-2"></i>
+            <p class="text-muted">No hashtags found for "{{ query }}"</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Discovery: Trending before search -->
+    <div class="glass-card p-3">
+        <h6 class="mb-3 fw-600">Trending Now</h6>
+        <div class="trending-section">
+            <p class="text-muted">Start typing to search for people, posts, and hashtags.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

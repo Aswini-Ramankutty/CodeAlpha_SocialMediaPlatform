@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Settings — Synora{% endblock %}
+
+{% block content %}
+<div class="container-narrow py-4">
+    <div class="glass-card mb-3">
+        <div class="p-3 border-bottom-glass">
+            <h5 class="mb-0"><i class="fas fa-cog me-2 text-gradient"></i>Settings</h5>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="settings-section">
+            <div class="settings-section-title">Account</div>
+            <a href="/edit-profile/" class="settings-item">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#a29bfe,#6c5ce7)">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Edit Profile</div>
+                    <div class="text-muted small">Update your name, bio, and avatar</div>
+                </div>
+                <i class="fas fa-chevron-right text-muted"></i>
+            </a>
+            <a href="/settings/password/" class="settings-item">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#fd79a8,#e84393)">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Change Password</div>
+                    <div class="text-muted small">Keep your account secure</div>
+                </div>
+                <i class="fas fa-chevron-right text-muted"></i>
+            </a>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="settings-section">
+            <div class="settings-section-title">Privacy</div>
+            <div class="settings-item">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#55efc4,#00b894)">
+                    <i class="fas fa-user-lock"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Private Account</div>
+                    <div class="text-muted small">Only approved followers can see your posts</div>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="privateToggle"
+                           {% if request.user.profile.is_private %}checked{% endif %}
+                           onchange="updatePrivacy(this.checked)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="settings-section">
+            <div class="settings-section-title">Appearance</div>
+            <div class="settings-item">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#fdcb6e,#e17055)">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Dark Mode</div>
+                    <div class="text-muted small">Toggle between light and dark theme</div>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="darkModeToggle"
+                           checked onchange="document.getElementById('themeToggle').click()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Settings -->
+        <div class="settings-section">
+            <div class="settings-section-title">Notifications</div>
+            <div class="settings-item">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#74b9ff,#0984e3)">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Push Notifications</div>
+                    <div class="text-muted small">Likes, comments, follows, messages</div>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" checked>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section">
+            <div class="settings-section-title text-danger">Danger Zone</div>
+            <a href="/logout/" class="settings-item settings-item-danger">
+                <div class="settings-item-icon" style="background:linear-gradient(135deg,#ff6b6b,#ee5a24)">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <div class="settings-item-info">
+                    <div class="fw-500">Sign Out</div>
+                    <div class="text-muted small">Log out from your account</div>
+                </div>
+                <i class="fas fa-chevron-right text-muted"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="text-center text-muted small">
+        Synora v1.0 · <a href="#" class="text-muted">Privacy</a> · <a href="#" class="text-muted">Terms</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updatePrivacy(isPrivate) {
+    fetch('/settings/privacy/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json'},
+        body: JSON.stringify({is_private: isPrivate})
+    });
+}
+</script>
+{% endblock %}

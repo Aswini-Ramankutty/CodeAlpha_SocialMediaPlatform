@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}Home — SocialApp{% endblock %}
+
+{% block content %}
+<div class="feed-layout">
+    <!-- ── Left: Stories + Posts Feed ──────────────────── -->
+    <div class="feed-main">
+        <!-- Stories Row -->
+        {% if stories %}
+        <div class="stories-container glass-card mb-3">
+            <div class="stories-scroll">
+                <!-- Add Story (self) -->
+                <div class="story-item">
+                    <div class="story-avatar-wrap add-story" onclick="document.getElementById('storyInput').click()">
+                        <img src="{{ request.user.profile.get_avatar_url }}" alt="" class="story-avatar">
+                        <span class="story-add-btn"><i class="fas fa-plus"></i></span>
+                    </div>
+                    <span class="story-name">Your Story</span>
+                </div>
+                <input type="file" id="storyInput" class="d-none" accept="image/*">
+
+                <!-- Other stories -->
+                {% for story in stories %}
+                <div class="story-item">
+                    <div class="story-avatar-wrap {% if not story.is_expired %}story-unseen{% endif %}">
+                        <img src="{{ story.author.profile.get_avatar_url }}" alt="" class="story-avatar">
+                    </div>
+                    <span class="story-name">{{ story.author.username|truncatechars:8 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Posts Feed -->
+        <div id="postsContainer">
+            {% for post in posts %}
+            {% include 'core/post_card.html' with post=post %}
+            {% empty %}
+            <div class="empty-feed glass-card text-center py-5">
+                <i class="fas fa-images fa-3x mb-3 text-muted"></i>
+                <h4>Your feed is empty</h4>
+                <p class="text-muted">Follow some people to see their posts here</p>
+                <a href="/explore/" class="btn btn-gradient mt-2">
+                    <i class="fas fa-compass me-1"></i> Explore Posts
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Load More / Infinite Scroll Trigger -->
+        {% if posts.has_next %}
+        <div class="text-center py-3" id="loadMoreBtn">
+            <button class="btn btn-glass" onclick="loadMorePosts({{ posts.next_page_number }})">
+                <i class="fas fa-spinner me-1"></i> Load More
+            </button>
+        </div>
+        <div id="infiniteScrollTrigger" style="height:1px;"></div>
+        {% endif %}
+    </div>
+
+    <!-- ── Right: Sidebar ──────────────────────────────── -->
+    <aside class="feed-sidebar d-none d-xl-block">
+        <!-- Profile Summary -->
+        <div class="sidebar-profile glass-card mb-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ request.user.profile.get_avatar_url }}" alt="" class="sidebar-avatar">
+                <div>
+                    <a href="/profile/{{ request.user.username }}/" class="fw-600">{{ request.user.get_full_name|default:request.user.username }}</a>
+                    <div class="text-muted small">@{{ request.user.username }}</div>
+                </div>
+                <a href="/edit-profile/" class="btn btn-sm btn-glass ms-auto">Edit</a>
+            </div>
+            <div class="sidebar-stats mt-3">
+                <div class="stat-box">
+                    <strong>{{ request.user.profile.posts_count }}</strong>
+                    <span>Posts</span>
+                </div>
+                <div class="stat-box">
+                    <strong>{{ request.user.profile.followers_count }}</strong>
+                    <span>Followers</span>
+                </div>
+                <div class="stat-box">
+                    <strong>{{ request.user.profile.following_count }}</strong>
+                    <span>Following</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Users -->
+        {% if suggested_users %}
+        <div class="glass-card mb-3 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 fw-600">Suggested For You</h6>
+                <a href="/explore/" class="text-gradient small fw-500">See All</a>
+            </div>
+            {% for user in suggested_users %}
+            <div class="suggested-user-item">
+                <img src="{{ user.profile.get_avatar_url }}" alt="" class="suggested-avatar">
+                <div class="suggested-info">
+                    <a href="/profile/{{ user.username }}/" class="fw-500">{{ user.username }}</a>
+                    <div class="text-muted" style="font-size:12px;">{{ user.followers_count }} followers</div>
+                </div>
+                <button class="btn btn-sm btn-gradient follow-btn"
+                        data-username="{{ user.username }}"
+                        onclick="toggleFollow(this, '{{ user.username }}')">
+                    Follow
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Trending Hashtags -->
+        {% if trending_tags %}
+        <div class="glass-card p-3">
+            <h6 class="mb-3 fw-600">Trending</h6>
+            {% for tag in trending_tags %}
+            <a href="/hashtag/{{ tag.name }}/" class="trending-tag-item">
+                <span class="tag-hash">#</span>{{ tag.name }}
+                <span class="tag-count ms-auto">{{ tag.post_count }} posts</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/feed.js"></script>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}Messages — SocialApp{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+    <!-- ── Sidebar: Conversation List ──────────────────── -->
+    <div class="chat-sidebar glass-card">
+        <div class="chat-sidebar-header">
+            <h5 class="mb-0">Messages</h5>
+            <div class="d-flex gap-2">
+                <a href="/chat/group/create/" class="btn-icon" title="New Group">
+                    <i class="fas fa-users"></i>
+                </a>
+                <button class="btn-icon" id="newChatBtn" title="New Message">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search chats -->
+        <div class="chat-search px-3 pb-3">
+            <div class="search-input-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="chatSearch" class="search-input" placeholder="Search conversations...">
+            </div>
+        </div>
+
+        <!-- Conversation List -->
+        <div class="chat-list" id="chatList">
+            {% for item in rooms_data %}
+            <a href="/chat/room/{{ item.room.id }}/"
+               class="chat-list-item {% if request.path == '/chat/room/'|add:item.room.id|add:'/' %}active{% endif %}">
+                <!-- Avatar -->
+                <div class="chat-avatar-wrap">
+                    {% if item.room.room_type == 'direct' and item.other_member %}
+                    <img src="{{ item.other_member.profile.get_avatar_url }}" alt="" class="chat-avatar">
+                    {% if item.other_member.profile.is_online %}
+                    <div class="chat-online-dot"></div>
+                    {% endif %}
+                    {% else %}
+                    <div class="group-chat-avatar">
+                        {% if item.room.avatar %}
+                        <img src="{{ item.room.avatar.url }}" alt="" class="chat-avatar">
+                        {% else %}
+                        <i class="fas fa-users"></i>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Chat Info -->
+                <div class="chat-item-info">
+                    <div class="chat-item-top">
+                        <span class="chat-item-name">
+                            {% if item.room.room_type == 'direct' and item.other_member %}
+                            {{ item.other_member.get_full_name|default:item.other_member.username }}
+                            {% else %}
+                            {{ item.room.name }}
+                            {% endif %}
+                        </span>
+                        <span class="chat-item-time">
+                            {% if item.last_message %}
+                            {{ item.last_message.created_at|timesince }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="chat-item-bottom">
+                        <span class="chat-item-preview">
+                            {% if item.last_message %}
+                                {% if item.last_message.is_deleted %}
+                                <i class="fas fa-ban me-1"></i>This message was deleted
+                                {% elif item.last_message.message_type != 'text' %}
+                                <i class="fas fa-paperclip me-1"></i>Attachment
+                                {% else %}
+                                {{ item.last_message.content|truncatechars:40 }}
+                                {% endif %}
+                            {% else %}
+                            No messages yet
+                            {% endif %}
+                        </span>
+                        {% if item.unread_count > 0 %}
+                        <span class="unread-badge">{{ item.unread_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center py-5 px-3">
+                <i class="fas fa-comments fa-2x text-muted mb-3"></i>
+                <p class="text-muted">No conversations yet.<br>Start chatting with someone!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── Right: Empty state on chat list ────────────── -->
+    <div class="chat-main-empty d-none d-lg-flex glass-card">
+        <div class="text-center">
+            <i class="fas fa-paper-plane fa-4x mb-4 text-gradient"></i>
+            <h4>Your Messages</h4>
+            <p class="text-muted">Send private messages to a friend or start a group.</p>
+            <button class="btn btn-gradient mt-2" id="sendMessageBtn">
+                <i class="fas fa-edit me-1"></i> Send Message
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div class="modal fade" id="newChatModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">New Message</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="search-input-wrap mb-3">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="userSearchInput" class="search-input" placeholder="Search users...">
+                </div>
+                <div id="userSearchResults">
+                    {% for user in suggested %}
+                    <a href="/chat/dm/{{ user.username }}/" class="user-search-item">
+                        <img src="{{ user.profile.get_avatar_url }}" alt="" class="suggested-avatar">
+                        <div>
+                            <div class="fw-500">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="text-muted small">@{{ user.username }}</div>
+                        </div>
+                        <i class="fas fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Open new chat modal
+document.getElementById('newChatBtn').onclick = () =>
+    new bootstrap.Modal(document.getElementById('newChatModal')).show();
+document.getElementById('sendMessageBtn').onclick = () =>
+    new bootstrap.Modal(document.getElementById('newChatModal')).show();
+
+// Search conversations
+document.getElementById('chatSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.chat-list-item').forEach(item => {
+        const name = item.querySelector('.chat-item-name').textContent.toLowerCase();
+        item.style.display = name.includes(q) ? '' : 'none';
+    });
+});
+
+// Live user search for new chat
+document.getElementById('userSearchInput').addEventListener('input', function() {
+    const q = this.value.trim();
+    if (!q) return;
+    fetch(`/search/?q=${q}&tab=users`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+    .then(r => r.text()).then(html => {
+        // Simple approach: navigate
+    });
+});
+</script>
+{% endblock %}

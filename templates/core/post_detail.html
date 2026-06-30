@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Post by {{ post.author.username }} — SocialApp{% endblock %}
+{% block content %}
+<div class="container-narrow py-4">
+  <div class="glass-card post-detail-card">
+    <div class="row g-0">
+      <!-- Media -->
+      <div class="col-lg-7">
+        {% if post.media %}
+          {% if post.media_type == 'video' %}
+          <video class="post-detail-media" controls><source src="{{ post.media.url }}"></video>
+          {% else %}
+          <img src="{{ post.media.url }}" class="post-detail-media" alt="">
+          {% endif %}
+        {% else %}
+        <div class="post-detail-no-media d-flex align-items-center justify-content-center">
+          <i class="fas fa-quote-left fa-3x text-muted"></i>
+        </div>
+        {% endif %}
+      </div>
+      <!-- Info & Comments -->
+      <div class="col-lg-5 d-flex flex-column">
+        <!-- Header -->
+        <div class="post-detail-header p-3">
+          <a href="/profile/{{ post.author.username }}/" class="d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{{ post.author.profile.get_avatar_url }}" class="post-avatar" alt="">
+            <div>
+              <div class="fw-600">{{ post.author.username }}</div>
+              {% if post.location %}<div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ post.location }}</div>{% endif %}
+            </div>
+          </a>
+        </div>
+        <!-- Caption -->
+        {% if post.caption %}
+        <div class="p-3 border-bottom-glass">
+          <span class="fw-600 me-1">{{ post.author.username }}</span>{{ post.caption }}
+        </div>
+        {% endif %}
+        <!-- Comments -->
+        <div class="comments-scroll flex-grow-1 p-3" id="commentsArea">
+          {% for comment in comments %}
+          <div class="comment-item" id="comment-{{ comment.id }}">
+            <img src="{{ comment.author.profile.get_avatar_url }}" class="comment-avatar" alt="">
+            <div class="comment-body">
+              <span class="fw-600 me-1">{{ comment.author.username }}</span>{{ comment.content }}
+              <div class="comment-actions">
+                <span class="text-muted small">{{ comment.created_at|timesince }} ago</span>
+                <button class="btn-link small ms-2" onclick="setReplyTo({{ comment.id }}, '{{ comment.author.username }}')">Reply</button>
+              </div>
+              <!-- Replies -->
+              {% for reply in comment.replies.all %}
+              <div class="reply-item mt-2">
+                <img src="{{ reply.author.profile.get_avatar_url }}" class="reply-avatar" alt="">
+                <div><span class="fw-600 me-1">{{ reply.author.username }}</span>{{ reply.content }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center text-muted py-3">No comments yet. Be first!</div>
+          {% endfor %}
+        </div>
+        <!-- Actions -->
+        <div class="post-detail-actions p-3">
+          <div class="post-actions mb-2">
+            <div class="post-actions-left">
+              <button class="action-btn like-btn {% if is_liked %}liked{% endif %}" onclick="toggleLike(this,'{{ post.id }}')">
+                <i class="{% if is_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+              </button>
+              <button class="action-btn" onclick="document.getElementById('commentInput').focus()">
+                <i class="far fa-comment"></i>
+              </button>
+            </div>
+            <button class="action-btn" onclick="toggleSave(this,'{{ post.id }}')">
+              <i class="{% if is_saved %}fas{% else %}far{% endif %} fa-bookmark"></i>
+            </button>
+          </div>
+          <div class="post-likes mb-2">
+            <span id="likes-{{ post.id }}">{{ post.likes_count }}</span> likes
+          </div>
+          <!-- Comment Form -->
+          {% if post.allow_comments %}
+          <form method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" id="parentId">
+            <input type="text" name="content" id="commentInput" class="glass-input flex-grow-1" placeholder="Add a comment...">
+            <button type="submit" class="btn btn-gradient btn-sm">Post</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function setReplyTo(id, username) {
+  document.getElementById('parentId').value = id;
+  document.getElementById('commentInput').placeholder = `Reply to @${username}...`;
+  document.getElementById('commentInput').focus();
+}
+</script>
+{% endblock %}

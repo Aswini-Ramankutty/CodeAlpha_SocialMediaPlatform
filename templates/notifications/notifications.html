@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — SocialApp{% endblock %}
+
+{% block content %}
+<div class="container-narrow py-4">
+    <div class="glass-card">
+        <div class="p-3 border-bottom-glass">
+            <h5 class="mb-0"><i class="fas fa-bell me-2 text-gradient"></i>Notifications</h5>
+        </div>
+
+        {% for notif in notifications %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+            <!-- Sender avatar with type badge -->
+            <div class="notif-avatar-wrap">
+                <img src="{{ notif.sender.profile.get_avatar_url }}" alt="" class="notif-avatar">
+                <div class="notif-type-icon
+                    {% if notif.notification_type == 'like' %}notif-like
+                    {% elif notif.notification_type == 'comment' %}notif-comment
+                    {% elif notif.notification_type == 'follow' %}notif-follow
+                    {% elif notif.notification_type == 'message' %}notif-message
+                    {% else %}notif-other{% endif %}">
+                    <i class="fas
+                        {% if notif.notification_type == 'like' %}fa-heart
+                        {% elif notif.notification_type == 'comment' %}fa-comment
+                        {% elif notif.notification_type == 'follow' %}fa-user-plus
+                        {% elif notif.notification_type == 'message' %}fa-envelope
+                        {% elif notif.notification_type == 'reply' %}fa-reply
+                        {% else %}fa-bell{% endif %}"></i>
+                </div>
+            </div>
+
+            <!-- Notification content -->
+            <div class="notif-content">
+                <p class="notif-text">
+                    <a href="/profile/{{ notif.sender.username }}/" class="notif-sender">{{ notif.sender.username }}</a>
+                    {{ notif.get_message|slice:"notif.sender.username|length:" }}
+                </p>
+                <span class="notif-time"><i class="far fa-clock me-1"></i>{{ notif.created_at|timesince }} ago</span>
+            </div>
+
+            <!-- Action -->
+            <div class="notif-action">
+                {% if notif.notification_type == 'follow' %}
+                <button class="btn btn-sm btn-gradient" onclick="toggleFollow(this, '{{ notif.sender.username }}')">
+                    Follow Back
+                </button>
+                {% elif notif.url %}
+                <a href="{{ notif.url }}" class="btn btn-sm btn-glass">View</a>
+                {% endif %}
+            </div>
+
+            {% if not notif.is_read %}
+            <div class="unread-dot"></div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No notifications yet</h5>
+            <p class="text-muted">We'll let you know when someone likes, comments, or follows you.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}New Group — SocialApp{% endblock %}
+{% block content %}
+<div class="container-narrow py-4">
+  <div class="glass-card p-4">
+    <div class="d-flex align-items-center gap-2 mb-4">
+      <a href="/chat/" class="btn-icon"><i class="fas fa-arrow-left"></i></a>
+      <h5 class="mb-0">Create Group Chat</h5>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group mb-3">
+        <label>Group Name</label>
+        <input type="text" name="name" class="form-control glass-input" placeholder="Enter group name..." required>
+      </div>
+      <div class="form-group mb-3">
+        <label>Add Members</label>
+        <div class="members-list">
+          {% for f in following %}
+          <label class="member-check-item">
+            <input type="checkbox" name="members" value="{{ f.following.id }}" class="form-check-input">
+            <img src="{{ f.following.profile.get_avatar_url }}" class="suggested-avatar" alt="">
+            <span>{{ f.following.username }}</span>
+          </label>
+          {% empty %}
+          <p class="text-muted">Follow people first to add them to a group.</p>
+          {% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-gradient w-100">Create Group</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+<!-- Post Card -->
+<article class="post-card glass-card mb-3" id="post-{{ post.id }}">
+    <!-- Post Header -->
+    <div class="post-header">
+        <a href="/profile/{{ post.author.username }}/" class="d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{{ post.author.profile.get_avatar_url }}" alt="" class="post-avatar">
+            <div>
+                <div class="fw-600">{{ post.author.get_full_name|default:post.author.username }}</div>
+                <div class="post-meta">
+                    @{{ post.author.username }}
+                    {% if post.location %} · <i class="fas fa-map-marker-alt"></i> {{ post.location }}{% endif %}
+                    · {{ post.created_at|timesince }} ago
+                </div>
+            </div>
+        </a>
+        <div class="ms-auto dropdown">
+            <button class="btn-icon dropdown-toggle no-caret" data-bs-toggle="dropdown">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end glass-dropdown">
+                <li><a class="dropdown-item" href="/post/{{ post.id }}/"><i class="fas fa-expand me-2"></i>View Post</a></li>
+                <li><button class="dropdown-item" onclick="sharePost('{{ post.id }}')"><i class="fas fa-share me-2"></i>Share</button></li>
+                <li><button class="dropdown-item" onclick="toggleSave(this,'{{ post.id }}')"><i class="fas fa-bookmark me-2"></i>Save</button></li>
+                {% if post.author == request.user %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/post/{{ post.id }}/delete/"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Post Media -->
+    {% if post.media %}
+    <div class="post-media-container">
+        {% if post.media_type == 'video' %}
+        <video class="post-media" controls preload="metadata">
+            <source src="{{ post.media.url }}" type="video/mp4">
+        </video>
+        {% else %}
+        <img src="{{ post.media.url }}" alt="Post" class="post-media" loading="lazy"
+             ondblclick="handleDoubleTapLike(this, '{{ post.id }}')">
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Post Actions -->
+    <div class="post-actions">
+        <div class="post-actions-left">
+            <!-- Like Button - check liked_post_ids from view -->
+            {% if post.id|stringformat:"s" in liked_post_ids %}
+            <button class="action-btn like-btn liked" data-post-id="{{ post.id }}"
+                    onclick="toggleLike(this, '{{ post.id }}')">
+                <i class="fas fa-heart" style="color:#ff4757;"></i>
+            </button>
+            {% else %}
+            <button class="action-btn like-btn" data-post-id="{{ post.id }}"
+                    onclick="toggleLike(this, '{{ post.id }}')">
+                <i class="far fa-heart"></i>
+            </button>
+            {% endif %}
+            <!-- Comment -->
+            <a href="/post/{{ post.id }}/" class="action-btn">
+                <i class="far fa-comment"></i>
+            </a>
+            <!-- Share -->
+            <button class="action-btn" onclick="sharePost('{{ post.id }}')">
+                <i class="far fa-share-square"></i>
+            </button>
+        </div>
+        <!-- Save Button -->
+        {% if post.id|stringformat:"s" in saved_post_ids %}
+        <button class="action-btn" data-post-id="{{ post.id }}"
+                onclick="toggleSave(this, '{{ post.id }}')">
+            <i class="fas fa-bookmark" style="color:var(--accent-1);"></i>
+        </button>
+        {% else %}
+        <button class="action-btn" data-post-id="{{ post.id }}"
+                onclick="toggleSave(this, '{{ post.id }}')">
+            <i class="far fa-bookmark"></i>
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Like Count -->
+    <div class="post-likes">
+        <span id="likes-{{ post.id }}">{{ post.likes_count }}</span> like{{ post.likes_count|pluralize }}
+    </div>
+
+    <!-- Caption -->
+    {% if post.caption %}
+    <div class="post-caption">
+        <a href="/profile/{{ post.author.username }}/" class="fw-600 me-1">{{ post.author.username }}</a>
+        {{ post.caption }}
+        {% for tag in post.hashtags.all %}
+        <a href="/hashtag/{{ tag.name }}/" class="hashtag">#{{ tag.name }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Comments count -->
+    {% if post.comments_count > 0 %}
+    <a href="/post/{{ post.id }}/" class="view-comments-link">
+        View all {{ post.comments_count }} comment{{ post.comments_count|pluralize }}
+    </a>
+    {% endif %}
+
+    <!-- Quick Comment -->
+    <div class="quick-comment">
+        <img src="{{ request.user.profile.get_avatar_url }}" alt="" class="comment-avatar">
+        <form action="/post/{{ post.id }}/" method="post" class="d-flex flex-grow-1 gap-2">
+            {% csrf_token %}
+            <input type="text" name="content" class="glass-input comment-input flex-grow-1"
+                   placeholder="Add a comment...">
+            <button type="submit" class="btn-link comment-submit">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</article>

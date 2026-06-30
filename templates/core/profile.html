@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile_user.username }} — SocialApp{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <!-- Cover Photo -->
+    <div class="profile-cover">
+        {% if profile.cover_photo %}
+        <img src="{{ profile.cover_photo.url }}" alt="Cover" class="cover-img">
+        {% else %}
+        <div class="cover-placeholder"></div>
+        {% endif %}
+        {% if is_own_profile %}
+        <button class="cover-edit-btn" title="Change cover photo">
+            <i class="fas fa-camera me-1"></i> Edit Cover
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Profile Info Card -->
+    <div class="profile-info-card glass-card">
+        <div class="profile-info-top">
+            <!-- Avatar -->
+            <div class="profile-avatar-wrap">
+                <img src="{{ profile.get_avatar_url }}" alt="avatar" class="profile-avatar-lg">
+                {% if is_own_profile %}
+                <div class="avatar-edit-overlay">
+                    <i class="fas fa-camera"></i>
+                </div>
+                {% endif %}
+                {% if profile.is_online %}
+                <div class="online-dot"></div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="profile-actions">
+                {% if is_own_profile %}
+                <a href="/edit-profile/" class="btn btn-glass"><i class="fas fa-edit me-1"></i>Edit Profile</a>
+                <a href="/settings/" class="btn btn-glass btn-icon-only"><i class="fas fa-cog"></i></a>
+                {% else %}
+                <button class="btn {% if is_following %}btn-glass{% else %}btn-gradient{% endif %} follow-toggle-btn"
+                        id="followBtn"
+                        onclick="toggleFollow(this, '{{ profile_user.username }}')">
+                    {% if is_following %}
+                    <i class="fas fa-user-check me-1"></i> Following
+                    {% else %}
+                    <i class="fas fa-user-plus me-1"></i> Follow
+                    {% endif %}
+                </button>
+                <a href="/chat/dm/{{ profile_user.username }}/" class="btn btn-glass">
+                    <i class="fas fa-comment-dots me-1"></i> Message
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Name & Bio -->
+        <div class="profile-bio-section">
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="profile-name">
+                    {{ profile_user.get_full_name|default:profile_user.username }}
+                    {% if profile.is_verified %}
+                    <i class="fas fa-check-circle text-primary" title="Verified"></i>
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="profile-username">@{{ profile_user.username }}</div>
+            {% if profile.bio %}
+            <p class="profile-bio-text">{{ profile.bio }}</p>
+            {% endif %}
+            <div class="profile-details">
+                {% if profile.location %}
+                <span><i class="fas fa-map-marker-alt me-1"></i>{{ profile.location }}</span>
+                {% endif %}
+                {% if profile.website %}
+                <a href="{{ profile.website }}" target="_blank" class="profile-website">
+                    <i class="fas fa-link me-1"></i>{{ profile.website|truncatechars:30 }}
+                </a>
+                {% endif %}
+                <span><i class="fas fa-calendar-alt me-1"></i>Joined {{ profile.created_at|date:"F Y" }}</span>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <strong>{{ posts_count }}</strong>
+                <span>Posts</span>
+            </div>
+            <a href="/profile/{{ profile_user.username }}/followers/" class="profile-stat text-decoration-none">
+                <strong id="followersCount">{{ followers_count }}</strong>
+                <span>Followers</span>
+            </a>
+            <a href="/profile/{{ profile_user.username }}/following/" class="profile-stat text-decoration-none">
+                <strong>{{ following_count }}</strong>
+                <span>Following</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div class="profile-posts-section">
+        <!-- Tab Nav -->
+        <div class="profile-tabs glass-card mb-3">
+            <button class="profile-tab active" data-tab="grid">
+                <i class="fas fa-th me-1"></i> Posts
+            </button>
+            {% if is_own_profile %}
+            <button class="profile-tab" data-tab="saved">
+                <i class="fas fa-bookmark me-1"></i> Saved
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Posts Grid -->
+        <div class="posts-grid" id="postsGrid">
+            {% for post in posts %}
+            <a href="/post/{{ post.id }}/" class="grid-post-item">
+                {% if post.media %}
+                    {% if post.media_type == 'video' %}
+                    <div class="grid-post-thumb video-thumb">
+                        <i class="fas fa-play play-icon"></i>
+                    </div>
+                    {% else %}
+                    <img src="{{ post.media.url }}" alt="" class="grid-post-thumb" loading="lazy">
+                    {% endif %}
+                {% else %}
+                <div class="grid-post-thumb text-post-thumb">
+                    <i class="fas fa-quote-left mb-2"></i>
+                    <p>{{ post.caption|truncatechars:60 }}</p>
+                </div>
+                {% endif %}
+                <div class="grid-post-overlay">
+                    <span><i class="fas fa-heart"></i> {{ post.likes_count }}</span>
+                    <span><i class="fas fa-comment"></i> {{ post.comments_count }}</span>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No posts yet</h5>
+                {% if is_own_profile %}
+                <button class="btn btn-gradient mt-2" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                    Share your first post
+                </button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Profile follow toggle
+function toggleFollow(btn, username) {
+    fetch(`/profile/${username}/follow/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json'},
+    })
+    .then(r => r.json())
+    .then(data => {
+        const countEl = document.getElementById('followersCount');
+        if (countEl) countEl.textContent = data.followers_count;
+        if (data.following) {
+            btn.className = 'btn btn-glass follow-toggle-btn';
+            btn.innerHTML = '<i class="fas fa-user-check me-1"></i> Following';
+        } else {
+            btn.className = 'btn btn-gradient follow-toggle-btn';
+            btn.innerHTML = '<i class="fas fa-user-plus me-1"></i> Follow';
+        }
+    });
+}
+</script>
+{% endblock %}

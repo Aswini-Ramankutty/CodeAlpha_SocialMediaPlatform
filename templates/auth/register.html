@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Synora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
+    <link href="/static/css/auth.css" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="auth-left d-none d-lg-flex">
+            <div class="auth-left-content">
+                <div class="auth-brand">
+                    <i class="fas fa-infinity"></i> Synora
+                </div>
+                <h2>Share your world,<br>connect with everyone.</h2>
+                <div class="auth-features">
+                    <div class="auth-feature"><i class="fas fa-check-circle"></i> Free forever</div>
+                    <div class="auth-feature"><i class="fas fa-check-circle"></i> Real-time messaging</div>
+                    <div class="auth-feature"><i class="fas fa-check-circle"></i> Photo & video sharing</div>
+                    <div class="auth-feature"><i class="fas fa-check-circle"></i> Private & secure</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Form -->
+        <div class="auth-right">
+            <div class="auth-card glass-card">
+                <div class="auth-header text-center">
+                    <div class="auth-logo d-lg-none"><i class="fas fa-infinity"></i></div>
+                    <h2>Create Account</h2>
+                    <p>Join Synora today — it's free!</p>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-user input-icon"></i>
+                                    {{ form.first_name }}
+                                </div>
+                                {% if form.first_name.errors %}
+                                <div class="field-error">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-user input-icon"></i>
+                                    {{ form.last_name }}
+                                </div>
+                                {% if form.last_name.errors %}
+                                <div class="field-error">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-at input-icon"></i>
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                <div class="field-error">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    {{ form.email }}
+                                </div>
+                                {% if form.email.errors %}
+                                <div class="field-error">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Password</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    {{ form.password1 }}
+                                    <button type="button" class="toggle-password" onclick="togglePassword('id_password1')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password1.errors %}
+                                <div class="field-error">{{ form.password1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    {{ form.password2 }}
+                                    <button type="button" class="toggle-password" onclick="togglePassword('id_password2')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password2.errors %}
+                                <div class="field-error">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if form.non_field_errors %}
+                        <div class="col-12">
+                            <div class="alert-error">{{ form.non_field_errors.0 }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <p class="terms-text">By signing up, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+
+                    <button type="submit" class="btn btn-gradient w-100 btn-auth">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
+                </form>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <div class="auth-footer text-center">
+                    Already have an account? <a href="/login/" class="auth-link">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function togglePassword(id) {
+        const inp = document.getElementById(id);
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+    </script>
+</body>
+</html>

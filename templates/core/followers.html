@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}{{ list_type|title }} — {{ profile_user.username }}{% endblock %}
+{% block content %}
+<div class="container-narrow py-4">
+  <div class="glass-card">
+    <div class="p-3 border-bottom-glass d-flex align-items-center gap-2">
+      <a href="/profile/{{ profile_user.username }}/" class="btn-icon"><i class="fas fa-arrow-left"></i></a>
+      <h5 class="mb-0">{{ profile_user.username }}'s {{ list_type|title }}</h5>
+    </div>
+    {% for follow in follows %}
+    <div class="search-user-item">
+      {% if list_type == 'followers' %}
+      <a href="/profile/{{ follow.follower.username }}/" class="d-flex align-items-center gap-3 flex-grow-1 text-decoration-none">
+        <img src="{{ follow.follower.profile.get_avatar_url }}" class="search-avatar" alt="">
+        <div>
+          <div class="fw-600">{{ follow.follower.get_full_name|default:follow.follower.username }}</div>
+          <div class="text-muted small">@{{ follow.follower.username }}</div>
+        </div>
+      </a>
+      <button class="btn btn-sm btn-gradient" onclick="toggleFollow(this,'{{ follow.follower.username }}')">Follow</button>
+      {% else %}
+      <a href="/profile/{{ follow.following.username }}/" class="d-flex align-items-center gap-3 flex-grow-1 text-decoration-none">
+        <img src="{{ follow.following.profile.get_avatar_url }}" class="search-avatar" alt="">
+        <div>
+          <div class="fw-600">{{ follow.following.get_full_name|default:follow.following.username }}</div>
+          <div class="text-muted small">@{{ follow.following.username }}</div>
+        </div>
+      </a>
+      <button class="btn btn-sm btn-glass" onclick="toggleFollow(this,'{{ follow.following.username }}')">Unfollow</button>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+      <i class="fas fa-users fa-2x text-muted mb-2"></i>
+      <p class="text-muted">No {{ list_type }} yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
