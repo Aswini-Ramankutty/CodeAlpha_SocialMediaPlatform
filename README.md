@@ -1,53 +1,25 @@
-# CodeAlpha_SocialMediaPlatform 🚀
+# CodeAlpha_SocialMediaPlatform
 
-A modern full-stack social media platform built with Django, HTML, CSS, and JavaScript. It enables users to connect, share posts, interact with others, and manage profiles through a responsive and user-friendly interface — combining the best of Instagram, WhatsApp, and Telegram.
-
-## Quick Start (5 minutes)
-
-### 1. Prerequisites
-- Python 3.10+
-- pip
-
-### 2. Setup
-
-```bash
-cd socialapp
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py makemigrations core chat notifications
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-
-### 3. Open in browser
-Visit: **http://127.0.0.1:8000/**
+A modern full-stack social media platform built with Django, HTML, CSS, and JavaScript. It enables users to connect, share posts, interact with others, and manage profiles through a responsive and user-friendly interface.
 
 ## Features
-- ✅ User registration, login, logout
-- ✅ Instagram-style photo/video feed
-- ✅ Like, comment, save posts
-- ✅ Follow/unfollow users
-- ✅ Real-time chat (WebSockets via Django Channels)
-- ✅ Group chats
-- ✅ Notifications system
-- ✅ Search users, posts, hashtags
-- ✅ Dark/Light mode
-- ✅ Glassmorphism UI
-- ✅ Mobile responsive
+- User registration, login, logout
+- Instagram-style photo/video feed
+- Like, comment, save posts
+- Follow/unfollow users
+- Real-time chat with WebSockets
+- Group chats
+- Notifications system
+- Search users, posts, hashtags
+- Dark/Light mode
+- Mobile responsive
 
-## Admin Panel
-Visit: **http://127.0.0.1:8000/admin/**
+## How to Run
 
-## Project Structure
-```
-socialapp/
-├── core/
-├── chat/
-├── notifications/
-├── templates/
-├── static/
-├── manage.py
-└── requirements.txt
-```
+1. Create virtual environment: python -m venv venv
+2. Activate it: venv\Scripts\activate
+3. Install dependencies: pip install -r requirements.txt
+4. Run migrations: python manage.py migrate
+5. Create admin: python manage.py createsuperuser
+6. Start server: python manage.py runserver
+7. Open browser: http://127.0.0.1:8000/
